@@ -100,6 +100,10 @@
       "type": "string",
       "default": "center"
     },
+    "mobileFullWidth": {
+      "type": "boolean",
+      "default": false
+    },
     "scheduleEnabled": {
       "type": "boolean",
       "default": false

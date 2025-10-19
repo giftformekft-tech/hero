@@ -29,6 +29,14 @@
     margin-left: 0;
     margin-right: 0;
   }
+  .hsb-hero.hsb-mobile-full .hsb-slide .bg-img {
+    object-fit: contain;
+  }
+  .hsb-hero.hsb-mobile-full .hsb-slide .lqip {
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
 }
 
 /* Layout sablonok */

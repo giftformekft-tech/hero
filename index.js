@@ -61,6 +61,7 @@
       enableSwipe: { type: 'boolean', default: true },
       smartContrast: { type: 'boolean', default: true },
       layoutStyle: { type: 'string', default: 'center' },
+      mobileFullWidth: { type: 'boolean', default: false },
       scheduleEnabled: { type: 'boolean', default: false },
       scheduleDays: { type: 'array', default: [] },
       scheduleStart: { type: 'string', default: "" },
@@ -165,6 +166,11 @@
               onChange: applyPreset
             }),
             wp.element.createElement(TextControl, { label: __('Egyedi magasság', 'hsb'), value: A.height, onChange: (v)=>setAttributes({ height: v }) }),
+            wp.element.createElement(ToggleControl, { label: __('Mobilon teljes szélesség', 'hsb'),
+              help: __('Bekapcsolva a slider kitölti a teljes képernyőszélességet mobil nézetben.', 'hsb'),
+              checked: !!A.mobileFullWidth,
+              onChange: (v)=>setAttributes({ mobileFullWidth: v })
+            }),
             wp.element.createElement(SelectControl, { label: __('Sablon (szöveg elrendezés)', 'hsb'),
               value: A.layoutStyle || 'center',
               options: [
@@ -229,7 +235,10 @@
       const slides = A.slides || [];
       const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
 
-      return wp.element.createElement('div', { className: 'hsb-hero',
+      const classNames = ['hsb-hero'];
+      if (A.mobileFullWidth) classNames.push('hsb-mobile-full');
+
+      return wp.element.createElement('div', { className: classNames.join(' '),
         'data-autoplay': String(!!A.autoplay),
         'data-delay': String(A.autoplayDelay || 5000),
         'data-show-dots': String(!!A.showDots),

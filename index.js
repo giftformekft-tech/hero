@@ -5,6 +5,186 @@
   const { MediaUpload, MediaUploadCheck, URLInputButton, InspectorControls } = be;
   const { Button, PanelBody, TextControl, ToggleControl, RangeControl, SelectControl, DateTimePicker } = wp.components || {};
 
+  const BLOCK_ATTRIBUTES = {
+    slides: { type: 'array', default: [] },
+    autoplay: { type: 'boolean', default: true },
+    autoplayDelay: { type: 'number', default: 5000 },
+    height: { type: 'string', default: '60vh' },
+    showDots: { type: 'boolean', default: true },
+    showArrows: { type: 'boolean', default: true },
+    darkOverlay: { type: 'number', default: 30 },
+    layoutPreset: { type: 'string', default: 'boxed' },
+    debugMode: { type: 'boolean', default: false },
+    safeMode: { type: 'boolean', default: false },
+    controlsType: { type: 'string', default: 'arrows-dots' },
+    arrowStyle: { type: 'string', default: 'circle' },
+    arrowIcon: { type: 'string', default: 'chevron' },
+    controlsColor: { type: 'string', default: '#ffffff' },
+    controlsBg: { type: 'string', default: 'rgba(0,0,0,0.4)' },
+    arrowSize: { type: 'number', default: 44 },
+    mobileFocalX: { type: 'number', default: 50 },
+    mobileFocalY: { type: 'number', default: 50 },
+    showMobileGuide: { type: 'boolean', default: false },
+    enableSwipe: { type: 'boolean', default: true },
+    smartContrast: { type: 'boolean', default: true },
+    layoutStyle: { type: 'string', default: 'center' },
+    mobileFullWidth: { type: 'boolean', default: false },
+    mobileCrop: { type: 'boolean', default: true },
+    scheduleEnabled: { type: 'boolean', default: false },
+    scheduleDays: { type: 'array', default: [] },
+    scheduleStart: { type: 'string', default: "" },
+    scheduleEnd: { type: 'string', default: "" }
+  };
+
+  function renderSlide(slide, index, attrs, includeRatio){
+    const s = slide || {};
+    const props = {
+      className: 'hsb-slide',
+      key: index,
+      'data-schedule-enabled': String(!!s.scheduleEnabled),
+      'data-schedule-days': (s.scheduleDays||[]).join(','),
+      'data-schedule-start': s.scheduleStart || '',
+      'data-schedule-end': s.scheduleEnd || ''
+    };
+
+    if (includeRatio){
+      const w = Number(s.imageW);
+      const h = Number(s.imageH);
+      if (w > 0 && h > 0){
+        props.style = { '--hsb-mobile-ratio': `${w} / ${h}` };
+        props['data-mobile-ratio'] = String(h / w);
+      }
+    }
+
+    return wp.element.createElement('div', props,
+      (s.lqip ? wp.element.createElement('div', { className:'lqip', style:{ backgroundImage: `url(${s.lqip})` } } ) : null),
+      s.imageUrl ? wp.element.createElement('img', {
+        className: 'bg-img',
+        src: s.imageUrl,
+        srcSet: s.imageSrcset || undefined,
+        sizes: '100vw',
+        alt: s.heading || ('Slide ' + (index+1)),
+        loading: index===0 ? 'eager' : 'lazy',
+        decoding: 'async',
+        fetchpriority: index===0 ? 'high' : undefined,
+        'data-fx': String( (s.focalX!=null ? s.focalX : attrs.mobileFocalX) || 50 ),
+        'data-fy': String( (s.focalY!=null ? s.focalY : attrs.mobileFocalY) || 50 )
+      }) : null,
+      wp.element.createElement('div', { className: 'overlay' }),
+      wp.element.createElement('div', { className: 'content' },
+        wp.element.createElement('div', { className: 'inner' },
+          wp.element.createElement('h2', null, s.heading || ''),
+          wp.element.createElement('p', null, s.subheading || ''),
+          (s.ctaText && s.ctaUrl) ? wp.element.createElement('a', { className: 'hsb-btn', href: s.ctaUrl }, s.ctaText) : null
+        )
+      )
+    );
+  }
+
+  function saveCurrent({ attributes }){
+    const A = attributes;
+    const slides = A.slides || [];
+    const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
+
+    const classNames = ['hsb-hero'];
+    if (A.mobileFullWidth) classNames.push('hsb-mobile-full');
+
+    return wp.element.createElement('div', { className: classNames.join(' '),
+      'data-mobile-crop': A.mobileCrop === false ? 'false' : undefined,
+      'data-autoplay': String(!!A.autoplay),
+      'data-delay': String(A.autoplayDelay || 5000),
+      'data-show-dots': String(!!A.showDots),
+      'data-show-arrows': String(!!A.showArrows),
+      'data-debug': String(!!A.debugMode),
+      'data-safe': String(!!A.safeMode),
+      'data-controls': A.controlsType || 'arrows-dots',
+      'data-arrow-style': A.arrowStyle || 'circle',
+      'data-arrow-icon': A.arrowIcon || 'chevron',
+      'data-ctrl-color': A.controlsColor || '#ffffff',
+      'data-ctrl-bg': A.controlsBg || 'rgba(0,0,0,0.4)',
+      'data-arrow-size': String(A.arrowSize || 44),
+      'data-swipe': String(!!A.enableSwipe),
+      'data-smart': String(!!A.smartContrast),
+      'data-layout': A.layoutStyle || 'center',
+      style: { '--hsb-height': A.height || '60vh', '--hsb-overlay': overlayOpacity }
+    },
+      A.debugMode ? wp.element.createElement('div', { className: 'hsb-debug' }, 'HSB debug') : null,
+      wp.element.createElement('div', { className: 'hsb-viewport' },
+        wp.element.createElement('div', { className: 'hsb-track' },
+          slides.map((s, i)=> renderSlide(s, i, A, true))
+        )
+      )
+    );
+  }
+
+  function saveMobileFullLegacy({ attributes }){
+    const A = attributes;
+    const slides = A.slides || [];
+    const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
+
+    const classNames = ['hsb-hero'];
+    if (A.mobileFullWidth) classNames.push('hsb-mobile-full');
+
+    return wp.element.createElement('div', { className: classNames.join(' '),
+      'data-mobile-crop': A.mobileCrop === false ? 'false' : undefined,
+      'data-autoplay': String(!!A.autoplay),
+      'data-delay': String(A.autoplayDelay || 5000),
+      'data-show-dots': String(!!A.showDots),
+      'data-show-arrows': String(!!A.showArrows),
+      'data-debug': String(!!A.debugMode),
+      'data-safe': String(!!A.safeMode),
+      'data-controls': A.controlsType || 'arrows-dots',
+      'data-arrow-style': A.arrowStyle || 'circle',
+      'data-arrow-icon': A.arrowIcon || 'chevron',
+      'data-ctrl-color': A.controlsColor || '#ffffff',
+      'data-ctrl-bg': A.controlsBg || 'rgba(0,0,0,0.4)',
+      'data-arrow-size': String(A.arrowSize || 44),
+      'data-swipe': String(!!A.enableSwipe),
+      'data-smart': String(!!A.smartContrast),
+      'data-layout': A.layoutStyle || 'center',
+      style: { '--hsb-height': A.height || '60vh', '--hsb-overlay': overlayOpacity }
+    },
+      A.debugMode ? wp.element.createElement('div', { className: 'hsb-debug' }, 'HSB debug') : null,
+      wp.element.createElement('div', { className: 'hsb-viewport' },
+        wp.element.createElement('div', { className: 'hsb-track' },
+          slides.map((s, i)=> renderSlide(s, i, A, false))
+        )
+      )
+    );
+  }
+
+  function saveClassicLegacy({ attributes }){
+    const A = attributes;
+    const slides = A.slides || [];
+    const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
+
+    return wp.element.createElement('div', { className: 'hsb-hero',
+      'data-autoplay': String(!!A.autoplay),
+      'data-delay': String(A.autoplayDelay || 5000),
+      'data-show-dots': String(!!A.showDots),
+      'data-show-arrows': String(!!A.showArrows),
+      'data-debug': String(!!A.debugMode),
+      'data-safe': String(!!A.safeMode),
+      'data-controls': A.controlsType || 'arrows-dots',
+      'data-arrow-style': A.arrowStyle || 'circle',
+      'data-arrow-icon': A.arrowIcon || 'chevron',
+      'data-ctrl-color': A.controlsColor || '#ffffff',
+      'data-ctrl-bg': A.controlsBg || 'rgba(0,0,0,0.4)',
+      'data-arrow-size': String(A.arrowSize || 44),
+      'data-swipe': String(!!A.enableSwipe),
+      'data-smart': String(!!A.smartContrast),
+      'data-layout': A.layoutStyle || 'center',
+      style: { '--hsb-height': A.height || '60vh', '--hsb-overlay': overlayOpacity }
+    },
+      A.debugMode ? wp.element.createElement('div', { className: 'hsb-debug' }, 'HSB debug') : null,
+      wp.element.createElement('div', { className: 'hsb-viewport' },
+        wp.element.createElement('div', { className: 'hsb-track' },
+          slides.map((s, i)=> renderSlide(s, i, A, false))
+        )
+      )
+    );
+  }
+
   function bestMedia(media){
     if (!media) return {};
     const full = media?.sizes?.full?.url || media?.url || media?.source_url || '';
@@ -38,34 +218,7 @@
     title: __('Hero Slider', 'hsb'),
     icon: 'images-alt2',
     category: 'design',
-    attributes: {
-      slides: { type: 'array', default: [] },
-      autoplay: { type: 'boolean', default: true },
-      autoplayDelay: { type: 'number', default: 5000 },
-      height: { type: 'string', default: '60vh' },
-      showDots: { type: 'boolean', default: true },
-      showArrows: { type: 'boolean', default: true },
-      darkOverlay: { type: 'number', default: 30 },
-      layoutPreset: { type: 'string', default: 'boxed' },
-      debugMode: { type: 'boolean', default: false },
-      safeMode: { type: 'boolean', default: false },
-      controlsType: { type: 'string', default: 'arrows-dots' },
-      arrowStyle: { type: 'string', default: 'circle' },
-      arrowIcon: { type: 'string', default: 'chevron' },
-      controlsColor: { type: 'string', default: '#ffffff' },
-      controlsBg: { type: 'string', default: 'rgba(0,0,0,0.4)' },
-      arrowSize: { type: 'number', default: 44 },
-      mobileFocalX: { type: 'number', default: 50 },
-      mobileFocalY: { type: 'number', default: 50 },
-      showMobileGuide: { type: 'boolean', default: false },
-      enableSwipe: { type: 'boolean', default: true },
-      smartContrast: { type: 'boolean', default: true },
-      layoutStyle: { type: 'string', default: 'center' },
-      scheduleEnabled: { type: 'boolean', default: false },
-      scheduleDays: { type: 'array', default: [] },
-      scheduleStart: { type: 'string', default: "" },
-      scheduleEnd: { type: 'string', default: "" }
-    },
+    attributes: BLOCK_ATTRIBUTES,
     edit: ({ attributes, setAttributes }) => {
       const A = attributes;
       const slides = A.slides || [];
@@ -97,7 +250,7 @@
             wp.element.createElement('div', { className:'thirds-grid' },
               ...Array.from({length:9}).map(()=> wp.element.createElement('div', null))
             ),
-            A.showMobileGuide && slide.imageUrl ? wp.element.createElement('div', { className:'hsb-mobile-guide' },
+            A.mobileCrop && A.showMobileGuide && slide.imageUrl ? wp.element.createElement('div', { className:'hsb-mobile-guide' },
               wp.element.createElement('div', { className:'mask', style: { backgroundImage: bg, backgroundPosition: `${(slide.focalX ?? A.mobileFocalX)}% ${(slide.focalY ?? A.mobileFocalY)}%` } }),
               wp.element.createElement('div', { className:'hsb-guide-label' }, 'Mobil előnézet ~390×700')
             ) : null
@@ -118,6 +271,7 @@
                 { label: __('Globális (blokk beállítás)', 'hsb'), value: 'global' },
                 { label: __('Per-dia (egyedi)', 'hsb'), value: 'per-slide' }
               ],
+              disabled: A.mobileCrop === false,
               onChange: (v)=>{
                 if (v==='global'){ updateSlide(index, { focalX: null, focalY: null }); }
                 else { updateSlide(index, { focalX: A.mobileFocalX, focalY: A.mobileFocalY }); }
@@ -165,6 +319,16 @@
               onChange: applyPreset
             }),
             wp.element.createElement(TextControl, { label: __('Egyedi magasság', 'hsb'), value: A.height, onChange: (v)=>setAttributes({ height: v }) }),
+            wp.element.createElement(ToggleControl, { label: __('Mobilon teljes szélesség', 'hsb'),
+              help: __('Bekapcsolva a slider kitölti a teljes képernyőszélességet mobil nézetben.', 'hsb'),
+              checked: !!A.mobileFullWidth,
+              onChange: (v)=>setAttributes({ mobileFullWidth: v })
+            }),
+            wp.element.createElement(ToggleControl, { label: __('Mobil fókuszált kivágás', 'hsb'),
+              help: __('Bekapcsolva mobilon a fókuszponttal kivágott nézet használható. Kikapcsolva a kép középre igazítva jelenik meg.', 'hsb'),
+              checked: A.mobileCrop !== false,
+              onChange: (v)=>setAttributes({ mobileCrop: v })
+            }),
             wp.element.createElement(SelectControl, { label: __('Sablon (szöveg elrendezés)', 'hsb'),
               value: A.layoutStyle || 'center',
               options: [
@@ -224,66 +388,16 @@
         )
       ];
     },
-    save: ({ attributes }) => {
-      const A = attributes;
-      const slides = A.slides || [];
-      const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
-
-      return wp.element.createElement('div', { className: 'hsb-hero',
-        'data-autoplay': String(!!A.autoplay),
-        'data-delay': String(A.autoplayDelay || 5000),
-        'data-show-dots': String(!!A.showDots),
-        'data-show-arrows': String(!!A.showArrows),
-        'data-debug': String(!!A.debugMode),
-        'data-safe': String(!!A.safeMode),
-        'data-controls': A.controlsType || 'arrows-dots',
-        'data-arrow-style': A.arrowStyle || 'circle',
-        'data-arrow-icon': A.arrowIcon || 'chevron',
-        'data-ctrl-color': A.controlsColor || '#ffffff',
-        'data-ctrl-bg': A.controlsBg || 'rgba(0,0,0,0.4)',
-        'data-arrow-size': String(A.arrowSize || 44),
-        'data-swipe': String(!!A.enableSwipe),
-        'data-smart': String(!!A.smartContrast),
-        'data-layout': A.layoutStyle || 'center',
-        style: { '--hsb-height': A.height || '60vh', '--hsb-overlay': overlayOpacity }
+    save: saveCurrent,
+    deprecated: [
+      {
+        attributes: BLOCK_ATTRIBUTES,
+        save: saveMobileFullLegacy
       },
-        A.debugMode ? wp.element.createElement('div', { className: 'hsb-debug' }, 'HSB debug') : null,
-        wp.element.createElement('div', { className: 'hsb-viewport' },
-          wp.element.createElement('div', { className: 'hsb-track' },
-            slides.map((s, i)=> wp.element.createElement('div', {
-                className: 'hsb-slide',
-                key: i,
-                'data-schedule-enabled': String(!!s.scheduleEnabled),
-                'data-schedule-days': (s.scheduleDays||[]).join(','),
-                'data-schedule-start': s.scheduleStart || '',
-                'data-schedule-end': s.scheduleEnd || ''
-              },
-              // LQIP blur-up réteg
-              (s.lqip ? wp.element.createElement('div', { className:'lqip', style:{ backgroundImage: `url(${s.lqip})` } } ) : null),
-              s.imageUrl ? wp.element.createElement('img', {
-                className: 'bg-img',
-                src: s.imageUrl,
-                srcSet: s.imageSrcset || undefined,
-                sizes: '100vw',
-                alt: s.heading || ('Slide ' + (i+1)),
-                loading: i===0 ? 'eager' : 'lazy',
-                decoding: 'async',
-                fetchpriority: i===0 ? 'high' : undefined,
-                'data-fx': String( (s.focalX!=null ? s.focalX : A.mobileFocalX) || 50 ),
-                'data-fy': String( (s.focalY!=null ? s.focalY : A.mobileFocalY) || 50 )
-              }) : null,
-              wp.element.createElement('div', { className: 'overlay' }),
-              wp.element.createElement('div', { className: 'content' },
-                wp.element.createElement('div', { className: 'inner' },
-                  wp.element.createElement('h2', null, s.heading || ''),
-                  wp.element.createElement('p', null, s.subheading || ''),
-                  (s.ctaText && s.ctaUrl) ? wp.element.createElement('a', { className: 'hsb-btn', href: s.ctaUrl }, s.ctaText) : null
-                )
-              )
-            ))
-          )
-        )
-      );
-    }
+      {
+        attributes: BLOCK_ATTRIBUTES,
+        save: saveClassicLegacy
+      }
+    ]
   });
 })(window.wp);

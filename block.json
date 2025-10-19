@@ -1,0 +1,137 @@
+{
+  "apiVersion": 2,
+  "name": "hsb/hero-slider",
+  "title": "Hero Slider",
+  "category": "design",
+  "icon": "images-alt2",
+  "description": "Hero banner slider v1.5 – Smart contrast, thirds grid, templates, scheduling, LCP-boost.",
+  "keywords": [
+    "hero",
+    "slider",
+    "banner",
+    "carousel"
+  ],
+  "attributes": {
+    "slides": {
+      "type": "array",
+      "default": []
+    },
+    "autoplay": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoplayDelay": {
+      "type": "number",
+      "default": 5000
+    },
+    "height": {
+      "type": "string",
+      "default": "60vh"
+    },
+    "showDots": {
+      "type": "boolean",
+      "default": true
+    },
+    "showArrows": {
+      "type": "boolean",
+      "default": true
+    },
+    "darkOverlay": {
+      "type": "number",
+      "default": 30
+    },
+    "layoutPreset": {
+      "type": "string",
+      "default": "boxed"
+    },
+    "debugMode": {
+      "type": "boolean",
+      "default": false
+    },
+    "safeMode": {
+      "type": "boolean",
+      "default": false
+    },
+    "controlsType": {
+      "type": "string",
+      "default": "arrows-dots"
+    },
+    "arrowStyle": {
+      "type": "string",
+      "default": "circle"
+    },
+    "arrowIcon": {
+      "type": "string",
+      "default": "chevron"
+    },
+    "controlsColor": {
+      "type": "string",
+      "default": "#ffffff"
+    },
+    "controlsBg": {
+      "type": "string",
+      "default": "rgba(0,0,0,0.4)"
+    },
+    "arrowSize": {
+      "type": "number",
+      "default": 44
+    },
+    "mobileFocalX": {
+      "type": "number",
+      "default": 50
+    },
+    "mobileFocalY": {
+      "type": "number",
+      "default": 50
+    },
+    "showMobileGuide": {
+      "type": "boolean",
+      "default": false
+    },
+    "enableSwipe": {
+      "type": "boolean",
+      "default": true
+    },
+    "smartContrast": {
+      "type": "boolean",
+      "default": true
+    },
+    "layoutStyle": {
+      "type": "string",
+      "default": "center"
+    },
+    "scheduleEnabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "scheduleDays": {
+      "type": "array",
+      "default": []
+    },
+    "scheduleStart": {
+      "type": "string",
+      "default": ""
+    },
+    "scheduleEnd": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "supports": {
+    "align": [
+      "full",
+      "wide"
+    ],
+    "anchor": true,
+    "spacing": {
+      "margin": [
+        "top",
+        "bottom"
+      ]
+    }
+  },
+  "editorScript": "hsb-block",
+  "editorStyle": "hsb-editor",
+  "style": "hsb-style",
+  "script": "hsb-front"
+}

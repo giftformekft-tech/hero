@@ -1,0 +1,16 @@
+/* Editor – thirds grid & mobile safe zone */
+.hsb-editor .hsb-slide { border: 1px dashed #999; padding: 12px; margin-bottom: 12px; border-radius: 8px; background: #fafafa; position: relative; }
+.hsb-editor .hsb-slide .preview { height: 220px; background-size: cover; background-position: center; border-radius: 6px; margin-bottom: 8px; position: relative; overflow: hidden; }
+.hsb-editor .thirds-grid {
+  position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;
+  pointer-events: none;
+}
+.hsb-editor .thirds-grid div { border: 1px dashed rgba(255,255,255,.35); }
+.hsb-mobile-guide {
+  position: absolute; right: 8px; top: 8px; width: 120px; height: 200px; border: 2px solid #111; border-radius: 12px; overflow: hidden;
+  background: rgba(0,0,0,.08); box-shadow: inset 0 0 0 2px rgba(255,255,255,.6);
+}
+.hsb-mobile-guide .mask { position: absolute; inset: 0; background-size: cover; background-position: center; filter: saturate(0.85) contrast(1.05); }
+.hsb-guide-label { position: absolute; left: 8px; bottom: 8px; font: 12px/1.2 system-ui; background: rgba(0,0,0,.6); color: #fff; padding: 3px 6px; border-radius: 6px; }
+.hsb-editor .slide-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hsb-warn { display:inline-block; margin-top:6px; padding:4px 8px; border-radius:6px; font: 12px/1.2 system-ui; background: #fff3cd; color: #664d03; border: 1px solid #ffe69c; }

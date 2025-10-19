@@ -267,37 +267,44 @@
         A.debugMode ? wp.element.createElement('div', { className: 'hsb-debug' }, 'HSB debug') : null,
         wp.element.createElement('div', { className: 'hsb-viewport' },
           wp.element.createElement('div', { className: 'hsb-track' },
-            slides.map((s, i)=> wp.element.createElement('div', {
+            slides.map((s, i)=> {
+              const hasDimensions = Number(s.imageW) > 0 && Number(s.imageH) > 0;
+              const slideStyle = hasDimensions ? { '--hsb-mobile-ratio': `${s.imageW} / ${s.imageH}` } : undefined;
+              const mobileRatio = hasDimensions ? String(Number(s.imageH) / Number(s.imageW)) : undefined;
+              return wp.element.createElement('div', {
                 className: 'hsb-slide',
                 key: i,
+                style: slideStyle,
+                'data-mobile-ratio': mobileRatio,
                 'data-schedule-enabled': String(!!s.scheduleEnabled),
                 'data-schedule-days': (s.scheduleDays||[]).join(','),
                 'data-schedule-start': s.scheduleStart || '',
                 'data-schedule-end': s.scheduleEnd || ''
               },
-              // LQIP blur-up réteg
-              (s.lqip ? wp.element.createElement('div', { className:'lqip', style:{ backgroundImage: `url(${s.lqip})` } } ) : null),
-              s.imageUrl ? wp.element.createElement('img', {
-                className: 'bg-img',
-                src: s.imageUrl,
-                srcSet: s.imageSrcset || undefined,
-                sizes: '100vw',
-                alt: s.heading || ('Slide ' + (i+1)),
-                loading: i===0 ? 'eager' : 'lazy',
-                decoding: 'async',
-                fetchpriority: i===0 ? 'high' : undefined,
-                'data-fx': String( (s.focalX!=null ? s.focalX : A.mobileFocalX) || 50 ),
-                'data-fy': String( (s.focalY!=null ? s.focalY : A.mobileFocalY) || 50 )
-              }) : null,
-              wp.element.createElement('div', { className: 'overlay' }),
-              wp.element.createElement('div', { className: 'content' },
-                wp.element.createElement('div', { className: 'inner' },
-                  wp.element.createElement('h2', null, s.heading || ''),
-                  wp.element.createElement('p', null, s.subheading || ''),
-                  (s.ctaText && s.ctaUrl) ? wp.element.createElement('a', { className: 'hsb-btn', href: s.ctaUrl }, s.ctaText) : null
+                // LQIP blur-up réteg
+                (s.lqip ? wp.element.createElement('div', { className:'lqip', style:{ backgroundImage: `url(${s.lqip})` } } ) : null),
+                s.imageUrl ? wp.element.createElement('img', {
+                  className: 'bg-img',
+                  src: s.imageUrl,
+                  srcSet: s.imageSrcset || undefined,
+                  sizes: '100vw',
+                  alt: s.heading || ('Slide ' + (i+1)),
+                  loading: i===0 ? 'eager' : 'lazy',
+                  decoding: 'async',
+                  fetchpriority: i===0 ? 'high' : undefined,
+                  'data-fx': String( (s.focalX!=null ? s.focalX : A.mobileFocalX) || 50 ),
+                  'data-fy': String( (s.focalY!=null ? s.focalY : A.mobileFocalY) || 50 )
+                }) : null,
+                wp.element.createElement('div', { className: 'overlay' }),
+                wp.element.createElement('div', { className: 'content' },
+                  wp.element.createElement('div', { className: 'inner' },
+                    wp.element.createElement('h2', null, s.heading || ''),
+                    wp.element.createElement('p', null, s.subheading || ''),
+                    (s.ctaText && s.ctaUrl) ? wp.element.createElement('a', { className: 'hsb-btn', href: s.ctaUrl }, s.ctaText) : null
+                  )
                 )
-              )
-            ))
+              );
+            })
           )
         )
       );

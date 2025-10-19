@@ -53,6 +53,18 @@
     } catch(e){}
   }
 
+  function syncMobileRatio(slideEl, img){
+    if (!slideEl || !img) return null;
+    const widthAttr = parseInt(img.getAttribute('width') || '', 10);
+    const heightAttr = parseInt(img.getAttribute('height') || '', 10);
+    const w = img.naturalWidth || widthAttr;
+    const h = img.naturalHeight || heightAttr;
+    if (!w || !h) return null;
+    slideEl.style.setProperty('--hsb-mobile-ratio', w + ' / ' + h);
+    slideEl.dataset.mobileRatio = String(h / w);
+    return h / w;
+  }
+
   function buildDots(root, slidesLen, controlsType){
     const dots = Array.from({length: slidesLen}).map((_,i)=>{
       const b = document.createElement('button');
@@ -68,6 +80,7 @@
 
   function init(root){
     if (!root || root.dataset.hsbReady === 'true') return false;
+    const viewportEl = root.querySelector('.hsb-viewport');
     const track = root.querySelector('.hsb-track');
     let slides = Array.from(root.querySelectorAll('.hsb-slide')).filter(shouldShowSlide);
     if (!track || slides.length === 0) return false;
@@ -96,6 +109,34 @@
     const layout = root.dataset.layout || 'center';
     root.classList.add('hsb-layout-' + layout);
 
+    const adjustMobileAspect = root.classList.contains('hsb-mobile-full') && root.dataset.mobileCrop === 'false';
+
+    // State
+    let index = 0;
+    let timer = null;
+    let dotsWrap = null;
+    let dots = null;
+
+    function updateActiveHeight(targetIndex = index){
+      if (!adjustMobileAspect) return;
+      const slideEl = slides[targetIndex];
+      if (!slideEl) return;
+      const viewportWidth = (viewportEl && viewportEl.clientWidth) || root.clientWidth || window.innerWidth || 0;
+      if (!viewportWidth) return;
+      let ratio = parseFloat(slideEl.dataset.mobileRatio || '');
+      if (!ratio || !isFinite(ratio)){
+        const img = slideEl.querySelector('img.bg-img');
+        if (!img) return;
+        const computed = syncMobileRatio(slideEl, img);
+        if (!computed) return;
+        ratio = computed;
+      }
+      const heightPx = viewportWidth * ratio;
+      if (heightPx > 0){
+        root.style.setProperty('--hsb-mobile-active-height', heightPx + 'px');
+      }
+    }
+
     // LCP-boost: preload + blur-up + smart contrast on first visible slide
     slides.forEach((s, i)=>{
       const img = s.querySelector('img.bg-img');
@@ -110,14 +151,13 @@
           if (img.complete) applySmartContrast(s, img);
           else img.addEventListener('load', ()=>applySmartContrast(s, img));
         }
+        if (adjustMobileAspect){
+          const applyRatio = ()=>{ syncMobileRatio(s, img); if (i === index) updateActiveHeight(i); };
+          if (img.complete) applyRatio();
+          else img.addEventListener('load', applyRatio, { once: true });
+        }
       }
     });
-
-    // State
-    let index = 0;
-    let timer = null;
-    let dotsWrap = null;
-    let dots = null;
 
     function goto(i, animate=true){
       index = (i + slides.length) % slides.length;
@@ -125,6 +165,7 @@
       track.style.transform = 'translateX(' + (-index * 100) + '%)';
       if (!animate){ void track.offsetWidth; track.style.transition = ''; }
       if (dots) dots.forEach((d, di)=>d.setAttribute('aria-current', di===index ? 'true' : 'false'));
+      if (adjustMobileAspect) updateActiveHeight(index);
     }
 
     function next(){ goto(index+1); }
@@ -162,7 +203,7 @@
 
     // Swipe
     if (enableSwipe && slides.length > 1){
-      const viewport = root.querySelector('.hsb-viewport') || root;
+      const viewport = viewportEl || root;
       let startX=0, startY=0, dx=0, dy=0, dragging=false, lockedAxis=null;
       const threshold = 30, vertTol=0.58;
       function onStart(x,y){ dragging=true; startX=x; startY=y; dx=0; dy=0; lockedAxis=null; stop(); }
@@ -201,6 +242,12 @@
         viewport.addEventListener('touchend', onEnd, {passive:true});
         viewport.addEventListener('touchcancel', onEnd, {passive:true});
       }
+    }
+
+    if (adjustMobileAspect){
+      updateActiveHeight(0);
+      const resizeHandler = ()=>updateActiveHeight(index);
+      window.addEventListener('resize', resizeHandler);
     }
 
     goto(0); start();

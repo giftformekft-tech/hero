@@ -1,7 +1,7 @@
 /* Front styles with smart-contrast & templates */
 .wp-block-hsb-hero-slider { position: relative; }
 .hsb-hero { position: relative; overflow: hidden; width: 100%; touch-action: pan-y pinch-zoom; }
-.hsb-viewport { position: relative; width: 100%; height: var(--hsb-height, 60vh); min-height: 320px; }
+.hsb-viewport { position: relative; width: 100%; height: var(--hsb-height, 60vh); min-height: 320px; overflow: hidden; }
 .hsb-track { display: grid; grid-auto-flow: column; grid-auto-columns: 100%; width: 100%; height: 100%; transition: transform 450ms ease; will-change: transform; }
 .hsb-slide { position: relative; width: 100%; height: 100%; background: #000; }
 .hsb-slide .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display:block; }
@@ -21,6 +21,7 @@
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
+    overflow: visible;
   }
   .hsb-hero.hsb-mobile-full.alignfull,
   .alignfull .hsb-hero.hsb-mobile-full,

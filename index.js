@@ -61,6 +61,8 @@
       enableSwipe: { type: 'boolean', default: true },
       smartContrast: { type: 'boolean', default: true },
       layoutStyle: { type: 'string', default: 'center' },
+      mobileFullWidth: { type: 'boolean', default: false },
+      mobileCrop: { type: 'boolean', default: true },
       scheduleEnabled: { type: 'boolean', default: false },
       scheduleDays: { type: 'array', default: [] },
       scheduleStart: { type: 'string', default: "" },
@@ -97,7 +99,7 @@
             wp.element.createElement('div', { className:'thirds-grid' },
               ...Array.from({length:9}).map(()=> wp.element.createElement('div', null))
             ),
-            A.showMobileGuide && slide.imageUrl ? wp.element.createElement('div', { className:'hsb-mobile-guide' },
+            A.mobileCrop && A.showMobileGuide && slide.imageUrl ? wp.element.createElement('div', { className:'hsb-mobile-guide' },
               wp.element.createElement('div', { className:'mask', style: { backgroundImage: bg, backgroundPosition: `${(slide.focalX ?? A.mobileFocalX)}% ${(slide.focalY ?? A.mobileFocalY)}%` } }),
               wp.element.createElement('div', { className:'hsb-guide-label' }, 'Mobil előnézet ~390×700')
             ) : null
@@ -118,6 +120,7 @@
                 { label: __('Globális (blokk beállítás)', 'hsb'), value: 'global' },
                 { label: __('Per-dia (egyedi)', 'hsb'), value: 'per-slide' }
               ],
+              disabled: A.mobileCrop === false,
               onChange: (v)=>{
                 if (v==='global'){ updateSlide(index, { focalX: null, focalY: null }); }
                 else { updateSlide(index, { focalX: A.mobileFocalX, focalY: A.mobileFocalY }); }
@@ -165,6 +168,16 @@
               onChange: applyPreset
             }),
             wp.element.createElement(TextControl, { label: __('Egyedi magasság', 'hsb'), value: A.height, onChange: (v)=>setAttributes({ height: v }) }),
+            wp.element.createElement(ToggleControl, { label: __('Mobilon teljes szélesség', 'hsb'),
+              help: __('Bekapcsolva a slider kitölti a teljes képernyőszélességet mobil nézetben.', 'hsb'),
+              checked: !!A.mobileFullWidth,
+              onChange: (v)=>setAttributes({ mobileFullWidth: v })
+            }),
+            wp.element.createElement(ToggleControl, { label: __('Mobil fókuszált kivágás', 'hsb'),
+              help: __('Bekapcsolva mobilon a fókuszponttal kivágott nézet használható. Kikapcsolva a kép középre igazítva jelenik meg.', 'hsb'),
+              checked: A.mobileCrop !== false,
+              onChange: (v)=>setAttributes({ mobileCrop: v })
+            }),
             wp.element.createElement(SelectControl, { label: __('Sablon (szöveg elrendezés)', 'hsb'),
               value: A.layoutStyle || 'center',
               options: [
@@ -229,7 +242,11 @@
       const slides = A.slides || [];
       const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
 
-      return wp.element.createElement('div', { className: 'hsb-hero',
+      const classNames = ['hsb-hero'];
+      if (A.mobileFullWidth) classNames.push('hsb-mobile-full');
+
+      return wp.element.createElement('div', { className: classNames.join(' '),
+        'data-mobile-crop': A.mobileCrop === false ? 'false' : undefined,
         'data-autoplay': String(!!A.autoplay),
         'data-delay': String(A.autoplayDelay || 5000),
         'data-show-dots': String(!!A.showDots),

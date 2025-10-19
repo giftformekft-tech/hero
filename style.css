@@ -33,6 +33,9 @@
   .hsb-hero.hsb-mobile-full .hsb-slide .bg-img {
     object-fit: contain;
   }
+  .hsb-hero.hsb-mobile-full .hsb-slide {
+    background: transparent;
+  }
   .hsb-hero.hsb-mobile-full .hsb-slide .lqip {
     background-size: contain;
     background-repeat: no-repeat;

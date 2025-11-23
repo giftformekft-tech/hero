@@ -2,8 +2,9 @@
   const { registerBlockType } = wp.blocks;
   const { __ } = wp.i18n;
   const be = wp.blockEditor || {};
-  const { MediaUpload, MediaUploadCheck, URLInputButton, InspectorControls } = be;
+  const { MediaUpload, MediaUploadCheck, URLInputButton, InspectorControls, useBlockProps } = be;
   const { Button, PanelBody, TextControl, ToggleControl, RangeControl, SelectControl, DateTimePicker } = wp.components || {};
+  const { Fragment, useState } = wp.element;
 
   const BLOCK_ATTRIBUTES = {
     slides: { type: 'array', default: [] },
@@ -222,6 +223,7 @@
     edit: ({ attributes, setAttributes }) => {
       const A = attributes;
       const slides = A.slides || [];
+      const [activeSlide, setActiveSlide] = useState(0);
 
       const addSlide = () => setAttributes({ slides: [...slides, {
         imageUrl:'', imageW:null, imageH:null, imageThumb:'', imageMedium:'', imageLarge:'', imageSrcset:'',
@@ -243,10 +245,12 @@
         setAttributes(patch);
       }
 
-      function SlideItem({slide, index}){
+      const blockProps = useBlockProps({ className: 'hsb-editor-shell' });
+
+      function SlideFields({ slide, index }){
         const bg = slide.imageUrl ? `url(${slide.imageUrl})` : 'none';
-        return wp.element.createElement('div', { className: 'hsb-slide hsb-editor' },
-          wp.element.createElement('div', { className: 'preview', style: { backgroundImage: bg, backgroundColor: '#eaeaea' } },
+        return wp.element.createElement(Fragment, {},
+          wp.element.createElement('div', { className: 'hsb-inspector-preview', style: { backgroundImage: bg } },
             wp.element.createElement('div', { className:'thirds-grid' },
               ...Array.from({length:9}).map(()=> wp.element.createElement('div', null))
             ),
@@ -256,41 +260,31 @@
             ) : null
           ),
           wp.element.createElement(SlideWarning, { slide, layoutPreset: A.layoutPreset }),
-          wp.element.createElement('div', { className: 'slide-row' },
-            wp.element.createElement(TextControl, { label: __('Címsor', 'hsb'), value: slide.heading || '', onChange: (v)=>updateSlide(index, { heading: v }) }),
-            wp.element.createElement(TextControl, { label: __('Alcím', 'hsb'), value: slide.subheading || '', onChange: (v)=>updateSlide(index, { subheading: v }) })
-          ),
-          wp.element.createElement('div', { className: 'slide-row' },
-            wp.element.createElement(TextControl, { label: __('CTA szöveg', 'hsb'), value: slide.ctaText || '', onChange: (v)=>updateSlide(index, { ctaText: v }) }),
-            wp.element.createElement(URLInputButton, { label: __('CTA link', 'hsb'), url: slide.ctaUrl || '', onChange: (v)=>updateSlide(index, { ctaUrl: v }) })
-          ),
-          wp.element.createElement('div', { className: 'slide-row' },
-            wp.element.createElement(SelectControl, { label: __('Fókuszpont forrása (mobil)', 'hsb'),
-              value: (slide.focalX!=null || slide.focalY!=null) ? 'per-slide' : 'global',
-              options: [
-                { label: __('Globális (blokk beállítás)', 'hsb'), value: 'global' },
-                { label: __('Per-dia (egyedi)', 'hsb'), value: 'per-slide' }
-              ],
-              disabled: A.mobileCrop === false,
-              onChange: (v)=>{
-                if (v==='global'){ updateSlide(index, { focalX: null, focalY: null }); }
-                else { updateSlide(index, { focalX: A.mobileFocalX, focalY: A.mobileFocalY }); }
-              }
-            }),
-            wp.element.createElement(SelectControl, { label: __('Megjelenés időzítése – napok', 'hsb'),
-              value: slide.scheduleDays || [], multiple: true,
-              options: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>({label:d, value:d})),
-              onChange: (v)=>updateSlide(index, { scheduleDays: v })
-            })
-          ),
-          wp.element.createElement('div', { className:'slide-row' },
-            wp.element.createElement(ToggleControl, { label: __('Időzítés bekapcsolása', 'hsb'), checked: !!slide.scheduleEnabled, onChange:(v)=>updateSlide(index, { scheduleEnabled: v }) }),
-            wp.element.createElement(TextControl, { label: __('LQIP (opcionális kis kép URL)', 'hsb'), value: slide.lqip || '', onChange:(v)=>updateSlide(index, { lqip: v }) })
-          ),
-          wp.element.createElement('div', { className:'slide-row' },
-            wp.element.createElement(TextControl, { label: __('Kezdet (ISO, pl. 2025-10-17T08:00)'), value: slide.scheduleStart || '', onChange:(v)=>updateSlide(index, { scheduleStart: v }) }),
-            wp.element.createElement(TextControl, { label: __('Vége (ISO, pl. 2025-10-20T23:59)'), value: slide.scheduleEnd || '', onChange:(v)=>updateSlide(index, { scheduleEnd: v }) })
-          ),
+          wp.element.createElement(TextControl, { label: __('Címsor', 'hsb'), value: slide.heading || '', onChange: (v)=>updateSlide(index, { heading: v }) }),
+          wp.element.createElement(TextControl, { label: __('Alcím', 'hsb'), value: slide.subheading || '', onChange: (v)=>updateSlide(index, { subheading: v }) }),
+          wp.element.createElement(TextControl, { label: __('CTA szöveg', 'hsb'), value: slide.ctaText || '', onChange: (v)=>updateSlide(index, { ctaText: v }) }),
+          wp.element.createElement(URLInputButton, { label: __('CTA link', 'hsb'), url: slide.ctaUrl || '', onChange: (v)=>updateSlide(index, { ctaUrl: v }) }),
+          wp.element.createElement(SelectControl, { label: __('Fókuszpont forrása (mobil)', 'hsb'),
+            value: (slide.focalX!=null || slide.focalY!=null) ? 'per-slide' : 'global',
+            options: [
+              { label: __('Globális (blokk beállítás)', 'hsb'), value: 'global' },
+              { label: __('Per-dia (egyedi)', 'hsb'), value: 'per-slide' }
+            ],
+            disabled: A.mobileCrop === false,
+            onChange: (v)=>{
+              if (v==='global'){ updateSlide(index, { focalX: null, focalY: null }); }
+              else { updateSlide(index, { focalX: A.mobileFocalX, focalY: A.mobileFocalY }); }
+            }
+          }),
+          wp.element.createElement(SelectControl, { label: __('Megjelenés időzítése – napok', 'hsb'),
+            value: slide.scheduleDays || [], multiple: true,
+            options: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>({label:d, value:d})),
+            onChange: (v)=>updateSlide(index, { scheduleDays: v })
+          }),
+          wp.element.createElement(ToggleControl, { label: __('Időzítés bekapcsolása', 'hsb'), checked: !!slide.scheduleEnabled, onChange:(v)=>updateSlide(index, { scheduleEnabled: v }) }),
+          wp.element.createElement(TextControl, { label: __('Kezdet (ISO, pl. 2025-10-17T08:00)'), value: slide.scheduleStart || '', onChange:(v)=>updateSlide(index, { scheduleStart: v }) }),
+          wp.element.createElement(TextControl, { label: __('Vége (ISO, pl. 2025-10-20T23:59)'), value: slide.scheduleEnd || '', onChange:(v)=>updateSlide(index, { scheduleEnd: v }) }),
+          wp.element.createElement(TextControl, { label: __('LQIP (opcionális kis kép URL)', 'hsb'), value: slide.lqip || '', onChange:(v)=>updateSlide(index, { lqip: v }) }),
           wp.element.createElement(MediaUploadCheck, {},
             wp.element.createElement(MediaUpload, {
               onSelect: (media)=>{
@@ -301,7 +295,24 @@
               render: ({ open }) => wp.element.createElement(Button, { onClick: open, variant: 'secondary' }, slide.imageUrl ? __('Kép cseréje', 'hsb') : __('Kép feltöltése', 'hsb'))
             })
           ),
-          wp.element.createElement(Button, { onClick: ()=>{ const next=slides.slice(); next.splice(index,1); setAttributes({ slides: next }); }, variant: 'link', isDestructive: true, style: { marginTop: '8px' } }, __('Dia törlése', 'hsb'))
+          wp.element.createElement(Button, { onClick: ()=>{ removeSlide(index); setActiveSlide(0); }, variant: 'link', isDestructive: true, style: { marginTop: '8px' } }, __('Dia törlése', 'hsb'))
+        );
+      }
+
+      function renderPreview(){
+        const overlayOpacity = (typeof A.darkOverlay === 'number' ? A.darkOverlay : 30) / 100;
+        const classNames = ['hsb-hero'];
+        if (A.mobileFullWidth) classNames.push('hsb-mobile-full');
+        return wp.element.createElement('div', { className: classNames.join(' '),
+          'data-mobile-crop': A.mobileCrop === false ? 'false' : undefined,
+          'data-layout': A.layoutStyle || 'center',
+          style: { '--hsb-height': A.height || '60vh', '--hsb-overlay': overlayOpacity }
+        },
+          wp.element.createElement('div', { className: 'hsb-viewport' },
+            wp.element.createElement('div', { className: 'hsb-track' },
+              slides.length ? slides.map((s, i)=> renderSlide(s, i, A, true)) : wp.element.createElement('div', { className:'hsb-slide empty' }, wp.element.createElement('div', { className:'content' }, wp.element.createElement('div', { className:'inner' }, __('Adj hozzá egy diát az oldalsó panelen.', 'hsb'))))
+            )
+          )
         );
       }
 
@@ -379,12 +390,23 @@
             wp.element.createElement(ToggleControl, { label: __('Okos kontraszt (auto szín/overlay)', 'hsb'), checked: !!A.smartContrast, onChange: (v)=>setAttributes({ smartContrast: v }) }),
             wp.element.createElement(ToggleControl, { label: __('Safe mód (nincs autoplay)', 'hsb'), checked: !!A.safeMode, onChange: (v)=>setAttributes({ safeMode: v }) }),
             wp.element.createElement(ToggleControl, { label: __('Debug mód', 'hsb'), checked: !!A.debugMode, onChange: (v)=>setAttributes({ debugMode: v }) }),
+          ),
+          wp.element.createElement(PanelBody, { title: __('Dia beállítások', 'hsb'), initialOpen: true },
+            slides.length ? wp.element.createElement(SelectControl, {
+              label: __('Aktív dia', 'hsb'),
+              value: String(activeSlide),
+              options: slides.map((_, i)=>({ label: __('Dia', 'hsb') + ' ' + (i+1), value: String(i) })),
+              onChange: (v)=> setActiveSlide(parseInt(v, 10) || 0)
+            }) : null,
+            slides[activeSlide] ? wp.element.createElement(SlideFields, { slide: slides[activeSlide], index: activeSlide }) : wp.element.createElement('p', null, __('Nincs dia. Adj hozzá legalább egyet.', 'hsb')),
+            wp.element.createElement(Button, { variant: 'primary', onClick: ()=>{ addSlide(); setActiveSlide(slides.length); }, style:{ marginTop: '12px', width: '100%' } }, __('+ Dia hozzáadása', 'hsb'))
           )
         ),
-        wp.element.createElement('div', { className: 'hsb-editor' },
-          wp.element.createElement('h3', null, __('Hero Slider diák', 'hsb')),
-          slides.map((s, i)=> wp.element.createElement(SlideItem, { key: i, slide: s, index: i })),
-          wp.element.createElement(Button, { variant: 'primary', onClick: addSlide }, __('+ Dia hozzáadása', 'hsb'))
+        wp.element.createElement('div', blockProps,
+          wp.element.createElement('div', { className:'hsb-live' },
+            wp.element.createElement('div', { className:'hsb-live-label' }, __('Hero előnézet', 'hsb')),
+            renderPreview()
+          )
         )
       ];
     },

@@ -51,16 +51,23 @@
     text-shadow: 0 4px 18px rgba(0,0,0,.45);
   }
   .hsb-hero.hsb-mobile-full[data-mobile-crop="false"] .hsb-viewport {
-    height: var(--hsb-mobile-active-height, auto);
+    height: auto;
     min-height: 0;
   }
   .hsb-hero.hsb-mobile-full[data-mobile-crop="false"] .hsb-track {
-    height: var(--hsb-mobile-active-height, auto);
+    height: auto;
     grid-auto-rows: auto;
   }
   .hsb-hero.hsb-mobile-full[data-mobile-crop="false"] .hsb-slide {
-    height: var(--hsb-mobile-active-height, auto);
-    aspect-ratio: var(--hsb-mobile-ratio, 16 / 9);
+    height: auto;
+    aspect-ratio: auto;
+  }
+  .hsb-hero.hsb-mobile-full[data-mobile-crop="false"] .hsb-slide .bg-img {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
   }
 }
 
